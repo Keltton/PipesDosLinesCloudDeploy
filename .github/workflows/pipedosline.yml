@@ -5,13 +5,38 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      simular_falha:
+        description: "Simular falha de teste (evidência de falha detectada)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
-  build:
+  secrets-scan:
+    name: Detecção de segredos
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  build:
+    name: Build e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: biblioteca-master
@@ -30,10 +55,38 @@ jobs:
       - name: Build e testes
         run: |
           chmod +x mvnw
-          ./mvnw -B clean verify
+          ./mvnw -B clean verify -Dsimular.falha=${{ inputs.simular_falha || 'false' }}
 
       - name: Publicar JAR
         uses: actions/upload-artifact@v4
         with:
           name: biblioteca-${{ github.sha }}
           path: biblioteca-master/target/*.jar
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Resumo da execução
+        if: always()
+        run: |
+          {
+            echo "## Resumo da execução"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Gatilho: \`${{ github.event_name }}\`"
+            echo "- Run: #${{ github.run_number }}"
+            echo "- Simulação de falha: \`${{ inputs.simular_falha || 'false' }}\`"
+            echo "- Artefato: \`biblioteca-${{ github.sha }}\`"
+            echo ""
+            echo "### Relatório dos testes"
+            echo '```'
+            cat target/surefire-reports/*.txt 2>/dev/null || echo "Nenhum relatório gerado"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar relatórios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-testes-${{ github.sha }}
+          path: biblioteca-master/target/surefire-reports/
+          if-no-files-found: ignore
+          retention-days: 14

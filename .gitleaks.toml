@@ -1,0 +1,10 @@
+title = "Configuração do Gitleaks - Biblioteca"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valor de desenvolvimento do JWT (H2 em memória); segredos reais vêm de variável de ambiente/GitHub Secrets"
+paths = [
+  '''biblioteca-master/src/main/resources/application\.properties'''
+]
