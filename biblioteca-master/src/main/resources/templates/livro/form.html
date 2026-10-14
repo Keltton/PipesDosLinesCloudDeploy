@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <form th:action="@{/livros/salvar}" method="post">
+        <div class="mb-3">
+            <input hidden="true" name="id" th:value="${livro.id}" type="text">
+
+            <label class="form-label" for="titulo">Título</label>
+            <input class="form-control" id="titulo" name="titulo" th:value="${livro.titulo}" type="text">
+
+            <label class="form-label" for="isbn">ISBN</label>
+            <input class="form-control" id="isbn" name="isbn" th:value="${livro.isbn}" type="text">
+
+            <label class="form-label" for="anoPublicacao">Ano Publicação</label>
+            <input class="form-control" id="anoPublicacao" name="anoPublicacao" th:value="${livro.anoPublicacao}" type="number">
+
+            <label class="form-label" for="autor">Autor</label>
+            <select class="form-select" id="autor" name="autor.id">
+                <option value="" th:selected="${livro.autor == null}"></option>
+                <option th:each="autor : ${autores}" th:value="${autor.id}" th:text="${autor.nome}"
+                        th:selected="${livro.autor != null && livro.autor.id == autor.id}"></option>
+            </select>
+        </div>
+        <button class="btn btn-dark" type="submit">Salvar</button>
+    </form>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>

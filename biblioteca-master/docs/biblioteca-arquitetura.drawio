@@ -1,0 +1,262 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17">
+  <diagram id="fOjBI1pvcIl28XZNL1ip" name="Página-1">
+    <mxGraphModel dx="1803" dy="727" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Biblioteca — Arquitetura Spring Boot 4.0.6 · Java 21" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#1a1a2e;" parent="1" vertex="1">
+          <mxGeometry x="327" y="20" width="1000" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="clients-bg" value="Clientes" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;rounded=1;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="250" y="100" width="300" height="140" as="geometry">
+            <mxRectangle x="50" y="70" width="90" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="browser" value="🌐 Browser&#xa;(Site / Thymeleaf)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" parent="clients-bg" vertex="1">
+          <mxGeometry x="10" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="apiclient" value="⚡ Cliente REST&#xa;(Postman / Front-end)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="400" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="app-bg" value="Spring Boot App · com.unialfa.biblioteca" style="swimlane;startSize=35;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=14;rounded=1;arcSize=2;" parent="1" vertex="1">
+          <mxGeometry x="50" y="260" width="1690" height="870" as="geometry" />
+        </mxCell>
+        <mxCell id="web-bg" value="Camada Web (entrada HTTP)" style="swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="30" y="50" width="680" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="site-bg" value="Site (HTML · Thymeleaf)" style="swimlane;startSize=24;fillColor=#fffde7;strokeColor=#d6b656;fontSize=11;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="40" y="90" width="300" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="mvc" value="🎮 Controllers MVC&#xa;com.unialfa.biblioteca.controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;" parent="site-bg" vertex="1">
+          <mxGeometry x="90" y="150" width="190" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="views" value="📄 Templates Thymeleaf&#xa;src/main/resources/templates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;" parent="site-bg" vertex="1">
+          <mxGeometry x="10" y="35" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="3) render HTML" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#f9a825;fontColor=#f57f17;fontSize=9;curved=1;" parent="site-bg" source="mvc" target="views" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rest-bg" value="API REST (JSON)" style="swimlane;startSize=24;fillColor=#fffde7;strokeColor=#d6b656;fontSize=11;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="390" y="95" width="290" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="🔌 Controllers REST&#xa;com.unialfa.biblioteca.api&#xa;/api/**" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;" parent="rest-bg" vertex="1">
+          <mxGeometry x="50" y="60" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-bg" value="Segurança · com.unialfa.biblioteca.config" style="swimlane;startSize=28;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="750" y="50" width="760" height="230" as="geometry">
+            <mxRectangle x="750" y="50" width="260" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="jwt" value="🪙 JWT (Nimbus JOSE)&#xa;JwtEncoder / JwtDecoder&#xa;HS256 · OAuth2 Resource Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;" parent="sec-bg" vertex="1">
+          <mxGeometry x="527" y="85" width="185" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="authmgr" value="🔑 AuthenticationManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;" parent="sec-bg" vertex="1">
+          <mxGeometry x="20" y="165" width="175" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pwd" value="🔐 PasswordEncoder&#xa;BCrypt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;" parent="sec-bg" vertex="1">
+          <mxGeometry x="230" y="155" width="175" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sf1" value="🔒 SecurityFilterChain (API)&#xa;/api/** + JWT Bearer&#xa;apiFilterChain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;" parent="sec-bg" vertex="1">
+          <mxGeometry x="230" y="82.5" width="175" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="valida token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;curved=1;" parent="sec-bg" source="sf1" target="jwt" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sf2" value="🛡️ SecurityFilterChain (Site)&#xa;formLogin + Sessão HTTP&#xa;securityFilterChain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;" parent="sec-bg" vertex="1">
+          <mxGeometry x="10" y="40" width="175" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-bg" value="Camada de Serviço · com.unialfa.biblioteca.service" style="swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="30" y="330" width="860" height="190" as="geometry">
+            <mxRectangle x="30" y="330" width="310" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="autorsvc" value="✍️ AutorService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" parent="svc-bg" vertex="1">
+          <mxGeometry x="210" y="90" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="usuariosvc" value="👤 UsuarioService&#xa;(UserDetailsService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" parent="svc-bg" vertex="1">
+          <mxGeometry x="430" y="120" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="tokensvc" value="🎫 TokenService&#xa;(gera JWT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" parent="svc-bg" vertex="1">
+          <mxGeometry x="630" y="65" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="livrosvc" value="📚 LivroService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" parent="svc-bg" vertex="1">
+          <mxGeometry x="20" y="120" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-bg" value="Camada de Dados · com.unialfa.biblioteca.repository · Spring Data JPA" style="swimlane;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="25" y="540" width="760" height="210" as="geometry">
+            <mxRectangle x="25" y="540" width="420" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="autorrepo" value="📦 AutorRepository&#xa;JpaRepository&lt;Autor,Long&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;fontSize=10;" parent="repo-bg" vertex="1">
+          <mxGeometry x="290" y="110" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="usuariorepo" value="📦 UsuarioRepository&#xa;JpaRepository&lt;Usuario,Long&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;fontSize=10;" parent="repo-bg" vertex="1">
+          <mxGeometry x="535" y="60" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="livrorepo" value="📦 LivroRepository&#xa;JpaRepository&lt;Livro,Long&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;fontSize=10;" parent="app-bg" vertex="1">
+          <mxGeometry x="55" y="585" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="domain-bg" value="Domínio · com.unialfa.biblioteca.model" style="swimlane;startSize=28;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="app-bg" vertex="1">
+          <mxGeometry x="940" y="430" width="670" height="340" as="geometry">
+            <mxRectangle x="950" y="330" width="250" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="livro" value="📗 Livro&#xa;@Entity&#xa;─────────&#xa;id: Long (PK)&#xa;titulo: String&#xa;isbn: String&#xa;@ManyToOne autor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ef6c00;fontSize=10;align=left;spacingLeft=10;" parent="domain-bg" vertex="1">
+          <mxGeometry x="25" y="45" width="180" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="autor" value="👤 Autor&#xa;@Entity&#xa;─────────&#xa;id: Long (PK)&#xa;nome: String&#xa;@OneToMany livros" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ef6c00;fontSize=10;align=left;spacingLeft=10;" parent="domain-bg" vertex="1">
+          <mxGeometry x="290" y="45" width="180" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="@ManyToOne" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=ERmany;startArrow=ERone;fontSize=9;strokeColor=#ef6c00;" parent="domain-bg" source="livro" target="autor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jpa-note" value="Hibernate (JPA)&#xa;+ H2 Console&#xa;spring-boot-h2console" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=10;fillColor=#fff9c4;strokeColor=#9e9d24;" parent="domain-bg" vertex="1">
+          <mxGeometry x="504" y="270" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="usuario" value="🔐 Usuario&#xa;@Entity + UserDetails&#xa;─────────&#xa;id: Long (PK)&#xa;login: String&#xa;senha: String (BCrypt)&#xa;role: String" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ef6c00;fontSize=10;align=left;spacingLeft=10;" parent="domain-bg" vertex="1">
+          <mxGeometry x="30" y="190" width="185" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="thymeleaf-note" value="Thymeleaf Extras&#xa;Spring Security 6&#xa;sec:authorize" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=10;fillColor=#fce4ec;strokeColor=#c62828;" parent="domain-bg" vertex="1">
+          <mxGeometry x="504" y="175" width="155" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="devtools-note" value="DevTools (runtime)&#xa;Live reload" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=10;fillColor=#e8f5e9;strokeColor=#388e3c;" parent="domain-bg" vertex="1">
+          <mxGeometry x="506.5" y="80" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="" style="rounded=0;strokeColor=#7b1fa2;fontSize=9;" parent="app-bg" source="autorsvc" target="autorrepo" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="mapeia" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;strokeColor=#ef6c00;fontColor=#bf360c;fontSize=9;curved=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="app-bg" source="autorrepo" target="autor" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="678" />
+              <mxPoint x="860" y="840" />
+              <mxPoint x="1320" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" value="" style="rounded=0;strokeColor=#7b1fa2;fontSize=9;" parent="app-bg" source="usuariosvc" target="usuariorepo" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="mapeia" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;strokeColor=#ef6c00;fontColor=#bf360c;fontSize=9;curved=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="app-bg" source="usuariorepo" target="usuario" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="mvc" target="autorsvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="api" target="autorsvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="mvc" target="usuariosvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="loadUserByUsername" style="rounded=0;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;edgeStyle=orthogonalEdgeStyle;curved=1;" parent="app-bg" source="authmgr" target="usuariosvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="verifica senha" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;curved=1;" parent="app-bg" source="usuariosvc" target="pwd" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="gera JWT" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="api" target="tokensvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="encode" style="rounded=0;strokeColor=#388e3c;fontSize=9;" parent="app-bg" source="tokensvc" target="jwt" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="mvc" target="livrosvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="" style="rounded=0;strokeColor=#388e3c;fontSize=9;elbow=vertical;" parent="app-bg" source="api" target="livrosvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" value="" style="rounded=0;strokeColor=#7b1fa2;fontSize=9;" parent="app-bg" source="livrosvc" target="livrorepo" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="mapeia" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;strokeColor=#ef6c00;fontColor=#bf360c;fontSize=9;curved=1;" parent="app-bg" source="livrorepo" target="livro" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="login" style="rounded=0;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;" parent="app-bg" source="api" target="authmgr" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="2) endpoint REST" style="rounded=0;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;edgeStyle=orthogonalEdgeStyle;curved=1;" parent="app-bg" source="sf1" target="api" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="2) rota autenticada" style="rounded=0;strokeColor=#6c8ebf;fontColor=#1565c0;fontSize=9;edgeStyle=orthogonalEdgeStyle;curved=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="app-bg" source="sf2" target="mvc" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-bg" value="Banco de Dados" style="swimlane;startSize=28;fillColor=#f0f4c3;strokeColor=#827717;fontStyle=1;fontSize=12;rounded=1;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="590" y="1160" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" value="🗄️ H2 Database&#xa;mem:banco (in-memory)&#xa;console: /h2-console" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f9fbe7;strokeColor=#827717;fontSize=11;" parent="db-bg" vertex="1">
+          <mxGeometry x="60" y="47.5" width="180" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="1) HTTP GET/POST" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#6c8ebf;fontColor=#1565c0;fontSize=9;curved=1;" parent="1" source="browser" target="sf2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="1) HTTP /api/**&#xa;Bearer token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#c62828;fontColor=#b71c1c;fontSize=9;curved=1;" parent="1" source="apiclient" target="sf1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="JDBC/JPA" style="rounded=0;strokeColor=#827717;fontColor=#827717;fontSize=9;" parent="1" source="livrorepo" target="h2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="JDBC/JPA" style="rounded=0;strokeColor=#827717;fontColor=#827717;fontSize=9;" parent="1" source="autorrepo" target="h2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="JDBC/JPA" style="rounded=0;strokeColor=#827717;fontColor=#827717;fontSize=9;" parent="1" source="usuariorepo" target="h2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-bg" value="Legenda" style="swimlane;startSize=24;fillColor=#f5f5f5;strokeColor=#666;fontSize=11;fontStyle=1;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="1160" width="430" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#6c8ebf;" parent="1" edge="1">
+          <mxGeometry x="60" y="1205" width="60" height="10" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="1205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg1l" value="Fluxo Web (MVC + Thymeleaf)" style="text;html=1;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="130" y="1195" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#c62828;" parent="1" edge="1">
+          <mxGeometry x="60" y="1230" width="60" height="10" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="1230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg2l" value="Fluxo de Segurança / JWT" style="text;html=1;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="130" y="1220" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#388e3c;" parent="1" edge="1">
+          <mxGeometry x="60" y="1255" width="60" height="10" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="1255" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg3l" value="Fluxo de Serviço / Negócio" style="text;html=1;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="130" y="1245" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#7b1fa2;" parent="1" edge="1">
+          <mxGeometry x="60" y="1280" width="60" height="10" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="1280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg4l" value="Fluxo de Dados (Repository)" style="text;html=1;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="130" y="1270" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#827717;" parent="1" edge="1">
+          <mxGeometry x="60" y="1305" width="60" height="10" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="1305" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg5l" value="Persistência JDBC / JPA → H2" style="text;html=1;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="130" y="1295" width="220" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

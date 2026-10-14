@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <a th:href="@{/usuarios/new}" type="button" class="btn btn-outline-dark"
+       title="Novo"><i class="bi bi-send-plus"></i>
+    </a>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Login</th>
+            <th>Privilégio</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="usuario : ${usuarios}">
+            <td th:text="${usuario.id}">0</td>
+            <td th:text="${usuario.nome}">0</td>
+            <td th:text="${usuario.login}">0</td>
+            <td th:text="${usuario.privilegio}">0</td>
+            <td>
+                <a th:href="@{'/usuarios/' + ${usuario.id}}" type="button" class="btn btn-outline-dark"
+                   title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a th:href="@{'/usuarios/remover/' + ${usuario.id}}" type="button" class="btn btn-outline-dark"
+                   title="Remover">
+                    <i class="bi bi-dash-square"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>

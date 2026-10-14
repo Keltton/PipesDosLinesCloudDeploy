@@ -1,0 +1,96 @@
+%%{init: {"flowchart": {"nodeSpacing":60, "rankSpacing": 80}}}%%
+flowchart TB
+  %% =====================
+  %% Visão macro
+  %% =====================
+  subgraph Clients[Clientes]
+    Browser["Browser<br/>(Site / Thymeleaf)"]
+    ApiClient["Cliente REST<br/>(Postman/Front-end/etc)"]
+  end
+
+  subgraph App["Spring Boot App<br/>(com.unialfa.biblioteca)"]
+    direction TB
+
+    subgraph WebLayer["Camada Web (entrada HTTP)"]
+      direction TB
+      subgraph Site["Site (HTML)"]
+        direction LR
+        MVC["Controllers MVC<br/>com.unialfa.biblioteca.controller"]
+        Views["Templates<br/>src/main/resources/templates"]
+      end
+      subgraph Rest["API (JSON)"]
+        direction LR
+        API["Controllers REST<br/>com.unialfa.biblioteca.api"]
+      end
+    end
+
+    subgraph Security["Segurança (com.unialfa.biblioteca.config)"]
+      direction TB
+      SF2["SecurityFilterChain (site)<br/>formLogin + sessão<br/>(securityFilterChain)"]
+      SF1["SecurityFilterChain (api)<br/>/api/** + JWT<br/>(apiFilterChain)"]
+      AuthMgr["AuthenticationManager"]
+      Pwd["PasswordEncoder<br/>BCrypt"]
+      JWTBeans["JWT (Nimbus)<br/>JwtEncoder/JwtDecoder<br/>HS256"]
+    end
+
+    subgraph ServiceLayer["Camada de Serviço (com.unialfa.biblioteca.service)"]
+      direction TB
+      LivroSvc[LivroService]
+      AutorSvc[AutorService]
+      UsuarioSvc["UsuarioService (UserDetailsService)"]
+      TokenSvc["TokenService (gera JWT)"]
+    end
+
+    subgraph DataLayer["Camada de Dados (com.unialfa.biblioteca.repository)"]
+      direction TB
+      LivroRepo["LivroRepository (Spring Data JPA)"]
+      AutorRepo["AutorRepository (Spring Data JPA)"]
+      UsuarioRepo["UsuarioRepository (Spring Data JPA)"]
+    end
+
+    subgraph Domain["Domínio<br/>com.unialfa.biblioteca.model"]
+      direction LR
+      Livro["Livro (@Entity)"]
+      Autor["Autor (@Entity)"]
+      Usuario["Usuario (@Entity + UserDetails)"]
+    end
+  end
+
+  subgraph DB[Banco de Dados]
+    H2[("H2<br/>mem:banco")]
+  end
+
+  %% =====================
+  %% Fluxos
+  %% =====================
+  Browser -->|"1) HTTP"| SF2 -->|"2) rota"| MVC
+  MVC -->|"3) render"| Views
+
+  ApiClient -->|"1) HTTP /api/**"| SF1 -->|"2) endpoint"| API
+  SF1 -->|"valida token"| JWTBeans
+
+  MVC --> LivroSvc
+  MVC --> AutorSvc
+  MVC --> UsuarioSvc
+
+  API --> LivroSvc
+  API --> AutorSvc
+
+  API -->|"login"| AuthMgr
+  AuthMgr --> UsuarioSvc
+  UsuarioSvc --> UsuarioRepo
+  UsuarioSvc --> Pwd
+  API --> TokenSvc
+  TokenSvc --> JWTBeans
+
+  LivroSvc --> LivroRepo
+  AutorSvc --> AutorRepo
+  UsuarioSvc ---> UsuarioRepo
+
+  LivroRepo --> H2
+  AutorRepo --> H2
+  UsuarioRepo --> H2
+
+  LivroRepo --> Livro
+  AutorRepo --> Autor
+  UsuarioRepo ---> Usuario

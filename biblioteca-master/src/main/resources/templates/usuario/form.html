@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <form th:action="@{/usuarios/salvar}" method="post">
+        <div class="mb-3">
+            <input hidden="true" name="id" th:value="${usuario.id}" type="text">
+
+            <label class="form-label" for="nome">Nome</label>
+            <input class="form-control" id="nome" name="nome" th:value="${usuario.nome}" type="text">
+
+            <label class="form-label" for="login">Login</label>
+            <input class="form-control" id="login" name="login" th:value="${usuario.login}" type="text">
+
+            <label class="form-label" for="password">Senha</label>
+            <input class="form-control" id="password" name="password" type="password">
+
+            <label class="form-label" for="privilegio">Privilégio</label>
+            <select class="form-select" id="privilegio" name="privilegio">
+                <option value="USER" th:selected="${usuario.privilegio == 'USER'}">USER</option>
+                <option value="ADMIN" th:selected="${usuario.privilegio == 'ADMIN'}">ADMIN</option>
+            </select>
+        </div>
+        <button class="btn btn-dark" type="submit">Salvar</button>
+    </form>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>

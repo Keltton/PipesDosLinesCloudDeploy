@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <a th:href="@{/autores/new}" type="button" class="btn btn-outline-dark"
+       title="Novo"><i class="bi bi-send-plus"></i>
+    </a>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Nacionalidade</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="autor : ${autores}">
+            <td th:text="${autor.id}">0</td>
+            <td th:text="${autor.nome}">0</td>
+            <td th:text="${autor.nacionalidade}">0</td>
+            <td>
+                <a th:href="@{'/autores/' + ${autor.id}}" type="button" class="btn btn-outline-dark"
+                   title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a th:href="@{'/autores/remover/' + ${autor.id}}" type="button" class="btn btn-outline-dark"
+                   title="Remover">
+                    <i class="bi bi-dash-square"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <form th:action="@{/autores/salvar}" method="post">
+        <div class="mb-3">
+            <input hidden="true" name="id" th:value="${autor.id}" type="text">
+
+            <label class="form-label" for="nome">Nome</label>
+            <input class="form-control" id="nome" name="nome" th:value="${autor.nome}" type="text">
+
+            <label class="form-label" for="nacionalidade">Nacionalidade</label>
+            <input class="form-control" id="nacionalidade" name="nacionalidade" th:value="${autor.nacionalidade}" type="text">
+        </div>
+        <button class="btn btn-dark" type="submit" >Salvar</button>
+    </form>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>

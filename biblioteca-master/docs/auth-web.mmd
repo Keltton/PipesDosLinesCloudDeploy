@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+
+  participant B as Browser (Web)
+  participant W as Spring MVC + Thymeleaf
+  participant S as Spring Security (formLogin)
+  participant U as UsuarioService (UserDetailsService)
+  participant R as UsuarioRepository
+  participant DB as H2
+
+  B->>W: GET /login
+  W-->>B: Renderiza tela de login
+  B->>S: POST credenciais (form)
+  S->>U: loadUserByUsername(username)
+  U->>R: findByLogin(username)
+  R->>DB: SELECT usuario
+  DB-->>R: dados do usuário
+  R-->>U: UserDetails
+  U-->>S: UserDetails
+  S-->>B: Login ok -> redirect /

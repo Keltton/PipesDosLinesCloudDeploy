@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+
+  participant C as Cliente REST
+  participant A as AuthApi (/api/auth)
+  participant M as AuthenticationManager
+  participant U as UsuarioService (UserDetailsService)
+  participant T as TokenService
+  participant E as JwtEncoder (HS256)
+  participant RS as Resource Server (JWT filter)
+
+  C->>A: POST /api/auth/login {username,password}
+  A->>M: authenticate(UsernamePasswordAuthenticationToken)
+  M->>U: loadUserByUsername(username)
+  U-->>M: UserDetails + roles
+  M-->>A: Authentication (sucesso)
+  A->>T: gerar(auth)
+  T->>E: encode(header+claims)
+  E-->>T: token JWT
+  T-->>A: token
+  A-->>C: 200 OK {token}
+
+  C->>RS: GET /api/** (Authorization: Bearer token)
+  RS-->>C: 200 OK (se token válido) / 401 (se inválido/ausente)

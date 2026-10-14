@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{index :: head}">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{index :: menu}"></div>
+    <br/>
+    <a th:href="@{/livros/new}" type="button" class="btn btn-outline-dark"
+       title="Novo"><i class="bi bi-send-plus"></i>
+    </a>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Título</th>
+            <th>ISBN</th>
+            <th>Ano Publicação</th>
+            <th>Autor</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="livro : ${livros}">
+            <td th:text="${livro.id}">0</td>
+            <td th:text="${livro.titulo}">0</td>
+            <td th:text="${livro.isbn}">0</td>
+            <td th:text="${livro.anoPublicacao}">0</td>
+            <td th:text="${livro.autor != null ? livro.autor.nome : ''}">0</td>
+            <td>
+                <a th:href="@{'/livros/' + ${livro.id}}" type="button" class="btn btn-outline-dark"
+                   title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a th:href="@{'/livros/remover/' + ${livro.id}}" type="button" class="btn btn-outline-dark"
+                   title="Remover">
+                    <i class="bi bi-dash-square"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:insert="~{index :: script}"></div>
+</body>
+</html>
