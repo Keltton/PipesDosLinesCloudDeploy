@@ -1,0 +1,113 @@
+# T7 — Regras de gravação (SLIs) e alertas da Biblioteca
+# Métricas expostas pelo Spring Boot Actuator + Micrometer em /actuator/prometheus
+# SLO de disponibilidade: 99,5% em 30 dias -> orçamento de erro = 0,5%
+
+groups:
+  # ---------------------------------------------------------------
+  # SLIs pré-calculados (usados pelo painel e pelos alertas)
+  # ---------------------------------------------------------------
+  - name: biblioteca-sli
+    interval: 30s
+    rules:
+      # Fração de requisições com erro (5xx), sem contar /actuator
+      # "or vector(0)": sem nenhum 5xx o resultado é 0, e não vazio
+      - record: biblioteca:erro_ratio:rate5m
+        expr: |
+          (sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*", status=~"5.."}[5m])) or vector(0))
+          /
+          sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*"}[5m]))
+      - record: biblioteca:erro_ratio:rate30m
+        expr: |
+          (sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*", status=~"5.."}[30m])) or vector(0))
+          /
+          sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*"}[30m]))
+      - record: biblioteca:erro_ratio:rate1h
+        expr: |
+          (sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*", status=~"5.."}[1h])) or vector(0))
+          /
+          sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*"}[1h]))
+      - record: biblioteca:erro_ratio:rate6h
+        expr: |
+          (sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*", status=~"5.."}[6h])) or vector(0))
+          /
+          sum(rate(http_server_requests_seconds_count{job="biblioteca", uri!~"/actuator.*"}[6h]))
+
+      # Latência p95 (segundos)
+      - record: biblioteca:latencia_p95:5m
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{job="biblioteca", uri!~"/actuator.*"}[5m])))
+
+      # Uso de heap da JVM (0 a 1). Pools sem limite (max = -1) ficam fora do denominador.
+      - record: biblioteca:heap_ratio
+        expr: |
+          sum(jvm_memory_used_bytes{job="biblioteca", area="heap"})
+          /
+          sum(jvm_memory_max_bytes{job="biblioteca", area="heap"} > 0)
+
+  # ---------------------------------------------------------------
+  # Alertas
+  # ---------------------------------------------------------------
+  - name: biblioteca-alertas
+    rules:
+      - alert: BibliotecaIndisponivel
+        expr: up{job="biblioteca"} == 0
+        for: 2m
+        labels:
+          severity: critica
+        annotations:
+          summary: "Biblioteca fora do ar"
+          description: "O Prometheus não consegue coletar métricas há 2 minutos. Verificar pod, readiness e último deploy."
+
+      # Queima rápida do orçamento de erro: 14,4x (consome 2% do orçamento mensal em 1h)
+      - alert: BibliotecaErrosQueimaRapida
+        expr: |
+          biblioteca:erro_ratio:rate1h > (14.4 * 0.005)
+          and
+          biblioteca:erro_ratio:rate5m > (14.4 * 0.005)
+        for: 2m
+        labels:
+          severity: critica
+        annotations:
+          summary: "Taxa de erro 5xx acima de 7,2%"
+          description: "No ritmo atual o orçamento de erro do mês acaba em ~2 dias. Se houve deploy recente, executar scripts/rollback.sh."
+
+      # Queima lenta do orçamento de erro: 6x (consome 5% do orçamento mensal em 6h)
+      - alert: BibliotecaErrosQueimaLenta
+        expr: |
+          biblioteca:erro_ratio:rate6h > (6 * 0.005)
+          and
+          biblioteca:erro_ratio:rate30m > (6 * 0.005)
+        for: 15m
+        labels:
+          severity: aviso
+        annotations:
+          summary: "Taxa de erro 5xx acima de 3% de forma sustentada"
+          description: "Degradação contínua. Investigar logs e endpoints com mais 5xx no painel."
+
+      - alert: BibliotecaLatenciaAlta
+        expr: biblioteca:latencia_p95:5m > 0.5
+        for: 10m
+        labels:
+          severity: aviso
+        annotations:
+          summary: "Latência p95 acima de 500 ms"
+          description: "p95 atual: {{ $value | humanizeDuration }}. Verificar CPU, heap e consultas lentas."
+
+      - alert: BibliotecaMemoriaAlta
+        expr: biblioteca:heap_ratio > 0.85
+        for: 10m
+        labels:
+          severity: aviso
+        annotations:
+          summary: "Heap da JVM acima de 85%"
+          description: "Risco de OutOfMemory e reinício do pod. Avaliar aumentar o limit de memória."
+
+      # Requer kube-state-metrics (somente no Kubernetes)
+      - alert: BibliotecaReiniciando
+        expr: increase(kube_pod_container_status_restarts_total{container="biblioteca"}[15m]) > 2
+        labels:
+          severity: aviso
+        annotations:
+          summary: "Pod da Biblioteca reiniciou mais de 2 vezes em 15 min"
+          description: "Possível crash loop ou falha de liveness. Ver kubectl describe pod e logs --previous."

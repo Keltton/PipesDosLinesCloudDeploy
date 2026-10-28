@@ -1,0 +1,66 @@
+# T6 — Deployment da cor "blue" (blue/green)
+# As duas cores usam a MESMA definição; só muda o rótulo "version".
+# A cor ativa é a que o Service "biblioteca" seleciona.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: biblioteca-blue
+  labels:
+    app: biblioteca
+    version: blue
+spec:
+  replicas: 1      # 1 réplica por causa do H2 em memória
+  selector:
+    matchLabels:
+      app: biblioteca
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: biblioteca
+        version: blue
+      annotations:
+        # T7: coleta de métricas pelo Prometheus
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: /actuator/prometheus
+    spec:
+      containers:
+        - name: biblioteca
+          image: ghcr.io/OWNER/biblioteca:TAG   # o script troca pela tag do commit
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 8081
+          env:
+            - name: API_SECURITY_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: biblioteca-secret
+                  key: jwt-secret
+            - name: APP_VERSION          # vira o rótulo "version" nas métricas (T7)
+              value: "TAG"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "384Mi"
+            limits:
+              cpu: "1"
+              memory: "768Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            periodSeconds: 5
+            failureThreshold: 24       # até 2 min para subir
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: management
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            periodSeconds: 20

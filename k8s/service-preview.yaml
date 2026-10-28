@@ -1,0 +1,21 @@
+# T6 — Service interno de pré-visualização.
+# Aponta para a cor INATIVA, para rodar os smoke tests antes da troca.
+# ClusterIP: não fica exposto na internet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: biblioteca-preview
+  labels:
+    app: biblioteca
+spec:
+  type: ClusterIP
+  selector:
+    app: biblioteca
+    version: green
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+    - name: management
+      port: 8081
+      targetPort: management

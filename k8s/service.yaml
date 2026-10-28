@@ -1,0 +1,19 @@
+# T6 — Service público. O seletor "version" define a cor ATIVA.
+# Trocar de blue para green (ou o rollback) = alterar só esse seletor.
+apiVersion: v1
+kind: Service
+metadata:
+  name: biblioteca
+  labels:
+    app: biblioteca
+  annotations:
+    bluegreen/previous-color: ""   # preenchido pelo script; usado no rollback
+spec:
+  type: LoadBalancer      # na VPS/K3s: NodePort (ver T3)
+  selector:
+    app: biblioteca
+    version: blue
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

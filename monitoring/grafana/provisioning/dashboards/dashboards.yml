@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: biblioteca
+    folder: T7
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
