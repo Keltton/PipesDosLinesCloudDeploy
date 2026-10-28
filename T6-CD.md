@@ -108,7 +108,7 @@ Se qualquer um falhar, o script **aborta** e o tráfego continua na versão atua
 | 2 | `GET /actuator/health/readiness` (porta 8081) | HTTP 200 |
 | 3 | `GET /login` | HTTP 200 |
 | 4 | `POST /api/auth/login` com usuário de teste | Retorna um token JWT |
-| 5 | `GET /api/livros` com o token | HTTP 200 (JWT validado pela nova versão) |
+| 5 | `GET /api/livros` com o token | HTTP 200 ou 404 (lista vazia); nunca 401/403, que indicariam JWT recusado |
 
 ### 5.2 Depois da troca (janela de observação de 15 min)
 Acompanhados no painel do T7. Os limites são os mesmos SLOs do T7.
@@ -152,8 +152,34 @@ O deploy é considerado **concluído** quando a janela termina sem gatilhos e o 
 | Mudanças de esquema do banco | Com banco externo, as duas cores precisam ser compatíveis com o mesmo esquema | Migrações compatíveis com a versão anterior (expand/contract) |
 
 ## 7. Evidências para a entrega
-- [ ] `kubectl get deploy,svc` antes do deploy (blue ativa)
-- [ ] Saída do `deploy-bluegreen.sh` com "Smoke tests OK" e a troca para green
-- [ ] Painel do T7 com o gráfico **Requisições por versão** mostrando a passagem de blue para green
-- [ ] Saída do `rollback.sh` e o gráfico voltando para blue
-- [ ] `kubectl get svc biblioteca -o yaml` mostrando o seletor e a anotação `bluegreen/previous-color`
+
+Prints em `docs/evidencias/`. Para os gráficos (itens 4 e 5), o Prometheus/Grafana do T7 coleta os pods do Kubernetes:
+
+```bash
+# Terminal A (deixar rodando): expõe as métricas dos pods blue/green em localhost:18081 e :18082
+./scripts/port-forward-metricas.sh
+
+# Terminal B: Prometheus + Grafana apontando para o cluster (derrubar antes o compose normal: docker compose down)
+cd monitoring && docker compose -f docker-compose.k8s.yml up -d
+
+# Terminal C (deixar rodando durante os deploys): tráfego pelo Service do cluster (porta 80 no Docker Desktop)
+URL=http://localhost ./scripts/gerar-trafego.sh normal
+```
+
+O gráfico **Requisições por versão** usa o rótulo `version`, que vem de `APP_VERSION` (a tag da imagem): v1 e v2 aparecem como séries diferentes.
+
+| # | Arquivo | Comando / tela | Deve mostrar |
+|---|---|---|---|
+| 1 | `t6-1-estado-inicial.png` | `kubectl get deploy,svc` | Depois do deploy da v1 e antes do da v2: uma cor com 1 réplica, a outra com 0, e o Service `biblioteca` apontando para a cor ativa |
+| 2 | `t6-2-deploy-v1.png` | `./scripts/deploy-bluegreen.sh v1` | Smoke tests `ok:` e a troca de tráfego |
+| 3 | `t6-3-deploy-v2.png` | `./scripts/deploy-bluegreen.sh v2` | "Smoke tests OK" e a troca para a outra cor |
+| 4 | `t6-4-grafana-troca.png` | Grafana → painel **Requisições por versão** | O tráfego passando de v1 para v2 |
+| 5 | `t6-5-rollback.png` | `./scripts/rollback.sh` + painel | Saída do rollback e o gráfico voltando para v1 |
+| 6 | `t6-6-service-yaml.png` | `kubectl get svc biblioteca -o yaml` | `selector.version` e a anotação `bluegreen/previous-color` |
+
+![Estado inicial](docs/evidencias/t6-1-estado-inicial.png)
+![Deploy v1](docs/evidencias/t6-2-deploy-v1.png)
+![Deploy v2](docs/evidencias/t6-3-deploy-v2.png)
+![Painel: troca de versão](docs/evidencias/t6-4-grafana-troca.png)
+![Rollback](docs/evidencias/t6-5-rollback.png)
+![Service: seletor e anotação](docs/evidencias/t6-6-service-yaml.png)

@@ -62,7 +62,7 @@ Arquivo: `monitoring/alert-rules.yml`
 
 | Alerta | Condição | Duração | Severidade | Ação esperada |
 |---|---|---|---|---|
-| `BibliotecaIndisponivel` | `up == 0` | 2 min | 🔴 Crítica | Ver pod, readiness e último deploy |
+| `BibliotecaIndisponivel` | Nenhum alvo com `up == 1` (a cor inativa no K8s não conta) | 2 min | 🔴 Crítica | Ver pod, readiness e último deploy |
 | `BibliotecaErrosQueimaRapida` | Erro 5xx > **7,2%** em 1 h **e** em 5 min | 2 min | 🔴 Crítica | Se houve deploy recente: `scripts/rollback.sh` (T6) |
 | `BibliotecaErrosQueimaLenta` | Erro 5xx > **3%** em 6 h **e** em 30 min | 15 min | 🟡 Aviso | Investigar logs e endpoints no painel |
 | `BibliotecaLatenciaAlta` | p95 > 500 ms | 10 min | 🟡 Aviso | Ver CPU, heap e consultas lentas |
@@ -120,32 +120,38 @@ docker compose up -d --build
 ./scripts/gerar-trafego.sh normal
 ```
 
-**No Kubernetes (T6):** os pods já têm as anotações `prometheus.io/scrape`, `port` e `path`. Com o *kube-prometheus-stack* instalado, basta um `PodMonitor` apontando para a porta `management`, e o arquivo `alert-rules.yml` vira um `PrometheusRule`. O rótulo `job` deve ser `biblioteca` para as consultas funcionarem.
+**Contra os pods do Kubernetes (T6):** `./scripts/port-forward-metricas.sh` em um terminal e, em `monitoring/`, `docker compose -f docker-compose.k8s.yml up -d` (derrubar antes o compose normal). O tráfego pelo Service do cluster é gerado com `URL=http://localhost ./scripts/gerar-trafego.sh normal` (porta 80 no Docker Desktop).
+
+**Em um cluster com kube-prometheus-stack:** os pods já têm as anotações `prometheus.io/scrape`, `port` e `path`. Com o *kube-prometheus-stack* instalado, basta um `PodMonitor` apontando para a porta `management`, e o arquivo `alert-rules.yml` vira um `PrometheusRule`. O rótulo `job` deve ser `biblioteca` para as consultas funcionarem.
 
 ## 7. Evidências para a entrega
 
-### 7.1 Painel funcionando
-- [ ] Prometheus → **Status → Targets** com `biblioteca` em **UP**
-- [ ] Grafana com o painel completo e tráfego normal
-- [ ] `curl http://localhost:8081/actuator/prometheus` com **conexão recusada**, comprovando que a porta de métricas não está publicada fora da rede interna
+Prints em `docs/evidencias/`, com o compose normal (`monitoring/docker-compose.yml`).
 
-### 7.2 Alerta disparando
-**Indisponibilidade** (garantido):
-```bash
-docker compose stop biblioteca     # aguardar ~2 min
-```
-- [ ] Prometheus → Alerts com `BibliotecaIndisponivel` em **FIRING**
-- [ ] Painel com Status = FORA
-- [ ] `docker compose start biblioteca` e o alerta voltando para inativo
+| # | Arquivo | Onde | Deve mostrar |
+|---|---|---|---|
+| 1 | `t7-1-target-up.png` | Prometheus → **Status → Targets** | `biblioteca` em **UP** |
+| 2 | `t7-2-painel-normal.png` | Grafana → Dashboards → T7 | Os 9 painéis com tráfego normal (`./scripts/gerar-trafego.sh normal`) |
+| 3 | `t7-3-porta-8081-fechada.png` | Terminal: `curl http://localhost:8081/actuator/prometheus` | **Conexão recusada**: a porta de métricas não está publicada fora da rede interna |
+| 4 | `t7-4-alerta-firing.png` | Prometheus → **Alerts** | `BibliotecaIndisponivel` em **FIRING** (~2 min depois de `docker compose stop biblioteca`) |
+| 5 | `t7-5-painel-fora.png` | Grafana | Painel **Status = FORA** |
+| 6 | `t7-6-recuperacao.png` | Prometheus → **Alerts** | Alerta inativo depois de `docker compose start biblioteca` |
 
-**Taxa de erro:**
+![Target UP](docs/evidencias/t7-1-target-up.png)
+![Painel com tráfego normal](docs/evidencias/t7-2-painel-normal.png)
+![Porta 8081 fechada](docs/evidencias/t7-3-porta-8081-fechada.png)
+![Alerta em FIRING](docs/evidencias/t7-4-alerta-firing.png)
+![Painel com Status FORA](docs/evidencias/t7-5-painel-fora.png)
+![Recuperação](docs/evidencias/t7-6-recuperacao.png)
+
+### Complemento opcional: taxa de erro
 ```bash
 ./scripts/gerar-trafego.sh erro    # aguardar ~5 min
 ```
-- [ ] Gráfico de erro 5xx acima da linha de 7,2% e `BibliotecaErrosQueimaRapida` em **PENDING/FIRING**
-- [ ] Painel "por endpoint" mostrando `/api/livros/{id}` com status 500
+- `t7-7-erro-5xx.png`: gráfico de erro 5xx acima da linha de 7,2% e `BibliotecaErrosQueimaRapida` em **PENDING/FIRING**
+- `t7-8-erro-endpoint.png`: painel "por endpoint" com `/api/livros/{id}` em status 500
 
-Se o painel não registrar status 500 nesse teste, use a evidência de indisponibilidade acima, que não depende do comportamento da aplicação.
+Se o painel não registrar status 500 nesse teste, a evidência de indisponibilidade (itens 4 a 6) não depende do comportamento da aplicação.
 
 ## 8. Achado durante o trabalho
 `GET /api/livros/{id}` com um id inexistente responde **500**, porque `LivroService` usa `Optional.get()`. O correto seria **404**. Hoje esse erro conta contra o SLO de disponibilidade, embora a culpa seja do cliente. A correção recomendada é usar `orElseThrow` com `ResponseStatusException(HttpStatus.NOT_FOUND)`. Ela não foi aplicada aqui porque o script de erro do item 7.2 depende desse comportamento.

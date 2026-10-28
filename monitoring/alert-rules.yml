@@ -51,7 +51,9 @@ groups:
   - name: biblioteca-alertas
     rules:
       - alert: BibliotecaIndisponivel
-        expr: up{job="biblioteca"} == 0
+        # Dispara só quando NENHUM alvo responde. No Kubernetes a cor inativa (0 réplicas)
+        # fica "down" por definição e não pode gerar alerta.
+        expr: up{job="biblioteca"} == 0 and on() sum(up{job="biblioteca"}) == 0
         for: 2m
         labels:
           severity: critica

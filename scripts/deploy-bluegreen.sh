@@ -28,28 +28,56 @@ fi
 # 2. Smoke tests pela rota de pré-visualização (Service interno)
 k patch svc biblioteca-preview --type merge \
   -p "{\"spec\":{\"selector\":{\"app\":\"biblioteca\",\"version\":\"$TARGET\"}}}"
-k port-forward svc/biblioteca-preview 18080:8080 18081:8081 >/dev/null 2>&1 &
-PF=$!
-trap 'kill $PF 2>/dev/null || true' EXIT
-sleep 4
-
 falhar() {
   echo "SMOKE TEST FALHOU: $1. Tráfego continua em $ACTIVE." >&2
   k scale "deployment/biblioteca-$TARGET" --replicas=0
   exit 1
 }
 
-code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+# Os testes rodam DENTRO do cluster, num pod temporário com curl, chamando o Service de preview.
+# Sem port-forward (trava no Windows/Git Bash) e sem "kubectl run -i --rm" (o attach trava no Git Bash):
+# cria o pod, espera a fase final, lê os logs e apaga.
+echo "==> Smoke tests (pod temporário no cluster)"
+SMOKE="smoke-$TARGET-$RANDOM"
+# shellcheck disable=SC2016  # o script abaixo é avaliado pelo sh do pod, não por este shell
+SMOKE_SCRIPT='
+  APP=http://biblioteca-preview:8080
+  MGMT=http://biblioteca-preview:8081
+  code() { curl -s -o /dev/null -w "%{http_code}" "$@"; }
 
-[ "$(code http://localhost:18081/actuator/health/readiness)" = "200" ] || falhar "readiness"
-[ "$(code http://localhost:18080/login)" = "200" ]                     || falhar "GET /login"
+  # readiness: até 30 s, para dar tempo de o Service enxergar o pod novo
+  ok=""
+  for i in $(seq 1 15); do
+    [ "$(code $MGMT/actuator/health/readiness)" = "200" ] && ok=1 && break
+    sleep 2
+  done
+  [ -n "$ok" ] || { echo "falhou: readiness"; exit 1; }
+  echo "ok: readiness 200"
 
-TOKEN="$(curl -s -X POST http://localhost:18080/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin"}' | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
-[ -n "$TOKEN" ] || falhar "POST /api/auth/login sem token"
-[ "$(code -H "Authorization: Bearer $TOKEN" http://localhost:18080/api/livros)" = "200" ] \
-  || falhar "GET /api/livros com JWT"
+  [ "$(code $APP/login)" = "200" ] || { echo "falhou: GET /login"; exit 1; }
+  echo "ok: GET /login 200"
+
+  T=$(curl -s -X POST $APP/api/auth/login -H "Content-Type: application/json" \
+      -d "{\"username\":\"admin\",\"password\":\"admin\"}" \
+      | sed -n "s/.*\"token\":\"\([^\"]*\)\".*/\1/p")
+  [ -n "$T" ] || { echo "falhou: POST /api/auth/login sem token"; exit 1; }
+  echo "ok: login na API devolveu JWT"
+
+  # A API responde 404 quando ainda não há livros: o que importa é o JWT ser aceito (não 401/403)
+  c=$(code -H "Authorization: Bearer $T" $APP/api/livros)
+  case "$c" in 200|404) ;; *) echo "falhou: GET /api/livros com JWT (HTTP $c)"; exit 1 ;; esac
+  echo "ok: /api/livros aceitou o JWT (HTTP $c)"
+'
+k run "$SMOKE" --restart=Never --image=curlimages/curl:8.10.1 --command -- sh -c "$SMOKE_SCRIPT" >/dev/null
+RESULT=""
+for _ in $(seq 1 90); do      # até 3 min (a 1ª vez baixa a imagem do curl)
+  PHASE="$(k get pod "$SMOKE" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+  case "$PHASE" in Succeeded|Failed) RESULT="$PHASE"; break ;; esac
+  sleep 2
+done
+k logs "$SMOKE" 2>&1 || true
+k delete pod "$SMOKE" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+[ "$RESULT" = "Succeeded" ] || falhar "smoke tests (${RESULT:-tempo esgotado}); ver as linhas acima"
 echo "==> Smoke tests OK"
 
 # 3. Troca de tráfego: o Service passa a apontar para a nova cor

@@ -1,5 +1,6 @@
 # T6 — Service interno de pré-visualização.
-# Aponta para a cor INATIVA, para rodar os smoke tests antes da troca.
+# O deploy aponta este Service para a cor recém-implantada ANTES da troca, para rodar os smoke tests.
+# Depois da troca ele continua nessa cor (o rollback não o atualiza); é usado só pelos smoke tests.
 # ClusterIP: não fica exposto na internet.
 apiVersion: v1
 kind: Service

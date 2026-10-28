@@ -8,10 +8,107 @@
 
 ---
 
+## Comece aqui: testar o pipeline no GitHub (passo a passo)
+
+Não é preciso instalar nada: tudo acontece no navegador, em cerca de 10 minutos. O GitHub está em inglês, então os botões aparecem **em negrito**, escritos como estão na tela.
+
+### Passo 1: entrar no GitHub
+1. Acesse https://github.com e clique em **Sign in**. Quem não tem conta clica em **Sign up** e cria uma, de graça.
+
+### Passo 2: fazer a sua cópia do repositório (fork)
+O *fork* cria uma cópia na sua conta. Nela você pode rodar o pipeline à vontade, sem mexer no original.
+1. Abra https://github.com/Keltton/PipesDosLinesCloudDeploy
+2. No canto superior direito, clique em **Fork**.
+3. Na tela seguinte, não mude nada e clique em **Create fork**.
+4. O GitHub abre `https://github.com/<seu-usuario>/PipesDosLinesCloudDeploy`. **Daqui em diante, trabalhe nessa cópia.**
+
+### Passo 3: ligar o GitHub Actions na sua cópia
+Por segurança, o GitHub deixa os pipelines **desligados** em todo fork novo.
+1. Na sua cópia, clique na aba **Actions**, na barra de cima.
+2. Clique no botão verde **I understand my workflows, go ahead and enable them**.
+
+### Passo 4: rodar o pipeline
+1. Ainda em **Actions**, clique em **pipedosline Biblioteca** na lista da esquerda.
+2. À direita, clique no botão **Run workflow**.
+3. Na caixa que abre, deixe *Branch: main* e a opção **Simular falha de teste** **desmarcada**.
+4. Clique no botão verde **Run workflow**.
+5. Em alguns segundos aparece uma linha nova com um círculo amarelo 🟡 (rodando). Se não aparecer, atualize a página (**F5**).
+
+### Passo 5: ver o resultado (cerca de 2 minutos)
+1. Quando o círculo virar ✅, clique no nome da execução.
+2. Aparecem dois blocos, **Detecção de segredos** e **Build e testes**, os dois com ✅.
+3. Role a página: o **Resumo da execução** mostra o commit e o relatório dos testes.
+4. No fim da página, em **Artifacts**, clique em `biblioteca-<código>` para baixar um `.zip` com o **JAR** da aplicação. Esse arquivo é o produto do pipeline.
+
+### Passo 6: ver o pipeline barrando um erro
+1. Repita o Passo 4, mas agora **marque** a opção **Simular falha de teste**.
+2. A execução termina com ❌. Clique nela e depois no bloco **Build e testes**.
+3. Abra a etapa **Build e testes** marcada com ❌ e procure a mensagem `Falha proposital solicitada para evidência do T5`.
+4. Confira em **Artifacts**: **não há JAR**, só os relatórios de teste. Isso prova que código com erro não vira artefato.
+5. Rode mais uma vez **sem** marcar a opção. A execução volta a ficar ✅ (recuperação).
+
+### Passo 7 (opcional): disparar o pipeline com uma alteração
+1. Na aba **Code** da sua cópia, clique no arquivo `README.md` e depois no lápis ✏️ (**Edit this file**).
+2. Mude qualquer palavra e clique em **Commit changes...** e depois em **Commit changes**.
+3. Volte em **Actions**: uma execução começou sozinha, disparada pelo `push`.
+
+### Problemas comuns
+
+| O que aparece | O que fazer |
+|---|---|
+| Em **Actions**: *"Workflows aren't being run on this forked repository"* | Faltou o Passo 3: clique em **I understand my workflows, go ahead and enable them** |
+| O botão **Run workflow** não aparece | Clique antes em **pipedosline Biblioteca**, na lista da esquerda. O botão só aparece na **sua cópia**, não no repositório original |
+| A execução fica parada em 🟡 *Queued* | É a fila do GitHub. Aguarde 1 a 2 minutos |
+| **Artifacts** vazio numa execução antiga | Os arquivos são apagados depois de 14 dias. Rode de novo |
+| ❌ sem ter marcado a simulação | Abra o bloco vermelho e a etapa com ❌. A seção 6 explica como investigar |
+
+---
+
 ## Pré-requisitos para rodar
 
-### Fork: trocar o dono da imagem (obrigatório para o T6)
-A imagem Docker é publicada no GitHub Container Registry (GHCR) **em nome do dono do repositório**, e neste repositório o dono é `keltton`. Em um fork, o push para `ghcr.io/keltton/...` é negado. Troque pelo **seu usuário do GitHub, em minúsculas** (o GHCR não aceita maiúsculas):
+### O que cada trabalho precisa
+
+| Para rodar | Pré-requisitos |
+|---|---|
+| **T5** (este pipeline) | Só uma conta no GitHub (ver *Comece aqui*). Nenhum secret a configurar. Para rodar no próprio computador: Java 21 (o `mvnw` baixa o Maven sozinho) |
+| **T6** (deploy blue/green, [`T6-CD.md`](T6-CD.md)) | Docker Desktop com Kubernetes ligado no modo **kubeadm** (ver abaixo) e, no Windows, o **Git Bash** para rodar os scripts. Publicar a imagem no GHCR só é necessário para um cluster na nuvem |
+| **T7** (observabilidade, [`T7-OBSERVABILIDADE.md`](T7-OBSERVABILIDADE.md)) | Docker Desktop (já vem com o Compose) e a variável `API_SECURITY_TOKEN_SECRET` definida antes do `docker compose up` |
+
+### T6 no próprio computador (Kubernetes do Docker Desktop)
+1. Abra o Docker Desktop e vá em **Settings → Kubernetes**. Marque **Enable Kubernetes**.
+2. Em **Cluster provisioning method**, escolha **kubeadm** e clique em **Apply & restart**. Aguarde o ícone do Kubernetes ficar verde.
+   No modo *kind*, o cluster não enxerga as imagens construídas no computador. Ele tenta baixá-las do GHCR, e o pod falha com `error from registry: denied`.
+3. No Git Bash, na pasta do repositório:
+```bash
+kubectl config use-context docker-desktop
+docker build -t ghcr.io/keltton/biblioteca:v1 biblioteca-master
+docker tag ghcr.io/keltton/biblioteca:v1 ghcr.io/keltton/biblioteca:v2
+kubectl create secret generic biblioteca-secret --from-literal=jwt-secret="$(openssl rand -base64 48)"
+kubectl apply -f k8s/
+./scripts/deploy-bluegreen.sh v1      # liga a green
+./scripts/deploy-bluegreen.sh v2      # troca para a blue
+./scripts/rollback.sh                 # volta para a green
+./scripts/finalizar.sh                # desliga a cor antiga
+kubectl delete -f k8s/                # limpa tudo ao terminar
+```
+Nesse modo local **não é preciso trocar `keltton`** nem publicar a imagem: o cluster usa a imagem construída no próprio computador.
+
+**Sobre o smoke test:** `GET /api/livros` é aprovado com **200 ou 404**, porque a API responde 404 enquanto não há livros cadastrados. O que reprova é **401 ou 403**, que significam JWT recusado, ou um erro **5xx**.
+
+### Publicar a imagem no GHCR (só para cluster na nuvem)
+1. Crie um token: GitHub → foto do perfil → **Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)**. Marque **`write:packages`** e clique em **Generate token**. Copie o token, porque ele aparece uma única vez.
+   Use o tipo **classic**. Com um token *fine-grained*, o `docker push` envia as camadas e termina com `error from registry: denied`.
+2. Faça login e publique:
+```bash
+echo "SEU_TOKEN" | docker login ghcr.io -u <seu-usuario> --password-stdin
+SHA=$(git rev-parse --short HEAD)
+docker build -t ghcr.io/<seu-usuario>/biblioteca:$SHA biblioteca-master
+docker push ghcr.io/<seu-usuario>/biblioteca:$SHA
+```
+3. Para o cluster baixar sem senha, deixe o pacote público: perfil → **Packages → biblioteca → Package settings → Change visibility → Public**.
+
+### Fork: trocar o dono da imagem (só ao publicar no GHCR)
+A imagem é publicada no GHCR **em nome do dono do repositório**, e neste repositório o dono é `keltton`. Num fork, o push para `ghcr.io/keltton/...` é negado. Troque pelo **seu usuário do GitHub, em minúsculas** (o GHCR não aceita maiúsculas):
 
 | Arquivo | Onde aparece |
 |---|---|
@@ -26,17 +123,9 @@ sed -i "s|ghcr.io/keltton/|ghcr.io/$USUARIO/|g; s|-u keltton |-u $USUARIO |" \
   k8s/deployment-*.yaml scripts/deploy-bluegreen.sh T6-CD.md
 ```
 
-Sem editar o script, também funciona assim: `IMAGE_REPO=ghcr.io/<usuario>/biblioteca ./scripts/deploy-bluegreen.sh <sha>`.
+Sem editar arquivos, também funciona assim: `IMAGE_REPO=ghcr.io/<usuario>/biblioteca ./scripts/deploy-bluegreen.sh <sha>`.
 
 O pipeline do T5 **não** precisa dessa troca: ele não publica imagem e usa o `GITHUB_TOKEN` automático.
-
-### O que cada trabalho precisa
-
-| Para rodar | Pré-requisitos |
-|---|---|
-| **T5** (este pipeline) | Repositório no GitHub com **Actions** habilitado e branch `main`. Nenhum secret a configurar. Localmente: Java 21 (o `mvnw` baixa o Maven) |
-| **T6** (deploy blue/green, [`T6-CD.md`](T6-CD.md)) | Docker, `kubectl` e um cluster (EKS, GKE, AKS ou K3s); token do GitHub com escopo `write:packages` para o `docker login` no GHCR; imagem publicada (seção 1.1 do T6); Secret `biblioteca-secret` no cluster. Se o pacote no GHCR for privado, torná-lo público ou criar um `imagePullSecret` |
-| **T7** (observabilidade, [`T7-OBSERVABILIDADE.md`](T7-OBSERVABILIDADE.md)) | Docker com Compose e a variável `API_SECURITY_TOKEN_SECRET` definida antes do `docker compose up` |
 
 ---
 
@@ -88,14 +177,11 @@ O job `build` depende do `secrets-scan` (`needs`): se a etapa 1 encontrar um seg
 
 ## 4. Como reproduzir
 
-**No GitHub**
-1. Fazer um push na `main` ou abrir um Pull Request para a `main`.
-2. Ou ir em **Actions → pipedosline Biblioteca → Run workflow**.
-3. Acompanhar a execução. O JAR e os relatórios ficam em **Artifacts**, no fim da página do run; o resumo aparece no topo.
+**No GitHub:** siga o [Comece aqui](#comece-aqui-testar-o-pipeline-no-github-passo-a-passo), no topo deste README.
 
-**Localmente (mesmo comando do pipeline)**
+**No próprio computador** (precisa do Java 21; no Windows, use o Git Bash):
 ```bash
-git clone https://github.com/Keltton/PipesDosLinesCloudDeploy.git
+git clone https://github.com/<seu-usuario>/PipesDosLinesCloudDeploy.git
 cd PipesDosLinesCloudDeploy/biblioteca-master
 ./mvnw -B clean verify                        # esperado: BUILD SUCCESS
 ls target/*.jar
