@@ -2,11 +2,12 @@
 # T6 — Deploy blue/green da Biblioteca
 # Uso: ./scripts/deploy-bluegreen.sh <tag-da-imagem>
 #   ex.: ./scripts/deploy-bluegreen.sh a1b2c3d
-# Variáveis opcionais: IMAGE_REPO (padrão ghcr.io/OWNER/biblioteca), NAMESPACE (padrão default)
+# Variáveis opcionais: IMAGE_REPO (padrão ghcr.io/keltton/biblioteca), NAMESPACE (padrão default)
+# Fork: trocar keltton pelo seu usuário do GitHub em minúsculas (ver README)
 set -euo pipefail
 
 TAG="${1:?uso: deploy-bluegreen.sh <tag-da-imagem>}"
-IMAGE_REPO="${IMAGE_REPO:-ghcr.io/OWNER/biblioteca}"
+IMAGE_REPO="${IMAGE_REPO:-ghcr.io/keltton/biblioteca}"
 NS="${NAMESPACE:-default}"
 k() { kubectl -n "$NS" "$@"; }
 

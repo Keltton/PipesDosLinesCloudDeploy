@@ -8,12 +8,45 @@
 
 ---
 
+## Pré-requisitos para rodar
+
+### Fork: trocar o dono da imagem (obrigatório para o T6)
+A imagem Docker é publicada no GitHub Container Registry (GHCR) **em nome do dono do repositório**, e neste repositório o dono é `keltton`. Em um fork, o push para `ghcr.io/keltton/...` é negado. Troque pelo **seu usuário do GitHub, em minúsculas** (o GHCR não aceita maiúsculas):
+
+| Arquivo | Onde aparece |
+|---|---|
+| `k8s/deployment-blue.yaml` | `image: ghcr.io/keltton/biblioteca:TAG` |
+| `k8s/deployment-green.yaml` | `image: ghcr.io/keltton/biblioteca:TAG` |
+| `scripts/deploy-bluegreen.sh` | valor padrão de `IMAGE_REPO` |
+| `T6-CD.md` (seção 1.1) | `docker login`, `docker build` e `docker push` |
+
+```bash
+USUARIO=seu-usuario   # em minúsculas
+sed -i "s|ghcr.io/keltton/|ghcr.io/$USUARIO/|g; s|-u keltton |-u $USUARIO |" \
+  k8s/deployment-*.yaml scripts/deploy-bluegreen.sh T6-CD.md
+```
+
+Sem editar o script, também funciona assim: `IMAGE_REPO=ghcr.io/<usuario>/biblioteca ./scripts/deploy-bluegreen.sh <sha>`.
+
+O pipeline do T5 **não** precisa dessa troca: ele não publica imagem e usa o `GITHUB_TOKEN` automático.
+
+### O que cada trabalho precisa
+
+| Para rodar | Pré-requisitos |
+|---|---|
+| **T5** (este pipeline) | Repositório no GitHub com **Actions** habilitado e branch `main`. Nenhum secret a configurar. Localmente: Java 21 (o `mvnw` baixa o Maven) |
+| **T6** (deploy blue/green, [`T6-CD.md`](T6-CD.md)) | Docker, `kubectl` e um cluster (EKS, GKE, AKS ou K3s); token do GitHub com escopo `write:packages` para o `docker login` no GHCR; imagem publicada (seção 1.1 do T6); Secret `biblioteca-secret` no cluster. Se o pacote no GHCR for privado, torná-lo público ou criar um `imagePullSecret` |
+| **T7** (observabilidade, [`T7-OBSERVABILIDADE.md`](T7-OBSERVABILIDADE.md)) | Docker com Compose e a variável `API_SECURITY_TOKEN_SECRET` definida antes do `docker compose up` |
+
+---
+
 ## 1. Visão geral
 
 ```mermaid
 flowchart LR
     A["Gatilho<br/>push/PR na main<br/>ou execução manual"] --> S["Detecção de segredos<br/>(Gitleaks)"]
-    A --> B["Checkout"]
+    S --> B["Checkout"]
+    S -. segredo encontrado .-> F
     B --> C["Java 21<br/>+ cache Maven"]
     C --> D["Build + testes<br/>./mvnw -B clean verify"]
     D --> E["Artefato<br/>biblioteca-&lt;sha&gt;"]
@@ -39,15 +72,15 @@ A aplicação fica em `biblioteca-master/` (usada como `working-directory`).
 
 | # | Job | Etapa | Ação | Saída | Falha quando |
 |---|---|---|---|---|---|
-| 1 | build | Checkout | Baixa o código do commit | Código-fonte | Repositório inacessível |
-| 2 | build | Configurar Java 21 | Instala o JDK e restaura o cache do Maven | Ambiente pronto | Versão indisponível |
-| 3 | build | Build e testes | `./mvnw -B clean verify`: compila, testa e empacota | `target/*.jar` | Erro de compilação ou teste reprovado |
-| 4 | build | Publicar JAR | Envia o JAR para *Artifacts* | `biblioteca-<sha>` | JAR não encontrado |
-| 5 | build | Resumo da execução | Escreve commit, gatilho, run e resultado dos testes no Job Summary (sempre executa) | Resumo na página do run | — |
-| 6 | build | Publicar relatórios de teste | Envia `surefire-reports` (sempre executa) | `relatorios-testes-<sha>` | — |
-| 7 | secrets-scan | Gitleaks | Varre os commits do push ou Pull Request em busca de segredos | Resultado do scan (`gitleaks-results.sarif`) | Segredo detectado |
+| 1 | secrets-scan | Gitleaks | Varre os commits do push ou Pull Request em busca de segredos | Resultado do scan (`gitleaks-results.sarif`) | Segredo detectado |
+| 2 | build | Checkout | Baixa o código do commit | Código-fonte | Repositório inacessível |
+| 3 | build | Configurar Java 21 | Instala o JDK e restaura o cache do Maven | Ambiente pronto | Versão indisponível |
+| 4 | build | Build e testes | `./mvnw -B clean verify`: compila, testa e empacota | `target/*.jar` | Erro de compilação ou teste reprovado |
+| 5 | build | Publicar JAR | Envia o JAR para *Artifacts* | `biblioteca-<sha>` | JAR não encontrado |
+| 6 | build | Resumo da execução | Escreve commit, gatilho, run e resultado dos testes no Job Summary (sempre executa) | Resumo na página do run | — |
+| 7 | build | Publicar relatórios de teste | Envia `surefire-reports` (sempre executa) | `relatorios-testes-<sha>` | — |
 
-Se a etapa 3 falhar, a etapa 4 não é executada e nenhum JAR é publicado; as etapas 5 e 6 ainda rodam para preservar a evidência.
+O job `build` depende do `secrets-scan` (`needs`): se a etapa 1 encontrar um segredo, o build nem começa. Se a etapa 4 falhar, a etapa 5 não é executada e nenhum JAR é publicado; as etapas 6 e 7 ainda rodam para preservar a evidência.
 
 **Testes existentes:**
 - `BibliotecaApplicationTests.contextLoads()` — sobe o contexto Spring.
@@ -130,7 +163,7 @@ ls target/*.jar
 
 - O pipeline roda com permissões somente leitura e não usa tokens de deploy.
 - Segredos de pipeline, quando necessários, ficam em **Settings → Secrets and variables → Actions** e são lidos com `${{ secrets.NOME }}`; o GitHub mascara os valores nos logs.
-- O job **Detecção de segredos** (Gitleaks) varre os commits de cada push ou Pull Request e reprova o pipeline se encontrar credenciais.
+- O job **Detecção de segredos** (Gitleaks) varre os commits de cada push ou Pull Request. Se encontrar credenciais, o pipeline é reprovado e o job de build nem começa (`needs: secrets-scan`), então nenhum JAR é publicado.
 - O valor de `api.security.token.secret` em `application.properties` é apenas de desenvolvimento (banco H2 em memória) e está explicitamente liberado em `.gitleaks.toml`. Em ambiente real ele deve ser sobrescrito pela variável de ambiente `API_SECURITY_TOKEN_SECRET`.
 - O Maven Wrapper (`mvnw`) garante a mesma versão do Maven em qualquer máquina.
 

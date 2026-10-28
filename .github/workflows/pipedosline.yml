@@ -35,6 +35,7 @@ jobs:
 
   build:
     name: Build e testes
+    needs: secrets-scan        # segredo encontrado = build não roda e nenhum JAR é publicado
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

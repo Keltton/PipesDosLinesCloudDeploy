@@ -3,7 +3,7 @@
 **Disciplina:** Cloud Computing e DevOps Avançado (Prof. Ranghetti)
 **Aplicação:** Biblioteca (Spring Boot 4.0.6 · Java 21)
 **Ferramentas:** Spring Boot Actuator + Micrometer, Prometheus e Grafana
-**Equipe:** _preencher integrantes_
+**Equipe:** Keltton, Felipe, Daniel
 
 ---
 

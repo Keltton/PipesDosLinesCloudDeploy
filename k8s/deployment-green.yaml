@@ -9,7 +9,7 @@ metadata:
     app: biblioteca
     version: green
 spec:
-  replicas: 0      # 1 réplica por causa do H2 em memória
+  replicas: 0      # começa desligada; o script sobe 1 (máximo 1 por causa do H2)
   selector:
     matchLabels:
       app: biblioteca
@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: biblioteca
-          image: ghcr.io/OWNER/biblioteca:TAG   # o script troca pela tag do commit
+          image: ghcr.io/keltton/biblioteca:TAG   # fork: trocar keltton (ver README); TAG o script troca
           ports:
             - name: http
               containerPort: 8080

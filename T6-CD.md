@@ -2,7 +2,7 @@
 
 **Disciplina:** Cloud Computing e DevOps Avançado (Prof. Ranghetti)
 **Aplicação:** Biblioteca (Spring Boot 4.0.6 · Java 21) em Kubernetes
-**Equipe:** _preencher integrantes_
+**Equipe:** Keltton, Felipe, Daniel
 
 ---
 
@@ -19,9 +19,12 @@
 O pipeline do T5 gera o JAR. Para o deploy, é preciso a **imagem** no registro, com a tag do commit:
 
 ```bash
+# Login no GHCR com um token pessoal (escopo write:packages)
+echo "$GHCR_TOKEN" | docker login ghcr.io -u keltton --password-stdin
+
 SHA=$(git rev-parse --short HEAD)
-docker build -t ghcr.io/<owner>/biblioteca:$SHA biblioteca-master
-docker push ghcr.io/<owner>/biblioteca:$SHA
+docker build -t ghcr.io/keltton/biblioteca:$SHA biblioteca-master
+docker push ghcr.io/keltton/biblioteca:$SHA
 ```
 
 Para automatizar, basta acrescentar ao workflow do T5 um job de imagem que rode depois do build e dos testes.
@@ -81,12 +84,13 @@ flowchart TD
 
 **Comandos**
 ```bash
-# Primeira vez: aplicar os manifestos (trocar OWNER e TAG pelos valores reais)
+# Primeira vez: as duas cores começam desligadas (replicas: 0); o primeiro deploy liga a green
+# Fork: trocar keltton pelo seu usuário antes (ver Pré-requisitos no README)
 kubectl create secret generic biblioteca-secret --from-literal=jwt-secret="$(openssl rand -base64 48)"
 kubectl apply -f k8s/
 
 # Cada nova versão
-IMAGE_REPO=ghcr.io/<owner>/biblioteca ./scripts/deploy-bluegreen.sh <sha>
+./scripts/deploy-bluegreen.sh <sha>   # imagem padrão: ghcr.io/keltton/biblioteca
 ./scripts/finalizar.sh      # após 15 min sem problemas
 ./scripts/rollback.sh       # se algum critério falhar
 ```
@@ -131,6 +135,7 @@ O deploy é considerado **concluído** quando a janela termina sem gatilhos e o 
 | Dentro da janela (cor anterior ainda ligada) | `./scripts/rollback.sh`: só troca o seletor do Service | **< 30 s** |
 | Depois do `finalizar.sh` (cor anterior desligada) | O mesmo `./scripts/rollback.sh`: religa a cor anterior, espera ficar pronta e troca | **≈ 2 min** (tempo de subida do Spring Boot) |
 | Imagem anterior não está mais em nenhuma cor | `./scripts/deploy-bluegreen.sh <sha-anterior>`: a tag do GHCR (T5) identifica a última versão boa | **≈ 3 min** |
+| Primeiro deploy (não existe versão anterior) | O `rollback.sh` recusa e avisa; corrigir e fazer um novo deploy | — |
 
 ### 6.3 Depois do rollback
 1. Confirmar no painel: requisições voltaram para a cor anterior e erros caíram.

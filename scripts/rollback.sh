@@ -10,7 +10,12 @@ CURRENT="$(k get svc biblioteca -o jsonpath='{.spec.selector.version}')"
 PREVIOUS="$(k get svc biblioteca -o jsonpath='{.metadata.annotations.bluegreen/previous-color}')"
 [ -n "$PREVIOUS" ] || { echo "ERRO: não há cor anterior registrada." >&2; exit 1; }
 
-echo "==> Rollback: $CURRENT -> $PREVIOUS"
+PREV_IMAGE="$(k get deployment "biblioteca-$PREVIOUS" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+case "$PREV_IMAGE" in
+  *:TAG) echo "ERRO: $PREVIOUS nunca recebeu uma versão (primeiro deploy). Use deploy-bluegreen.sh <sha-anterior>." >&2; exit 1 ;;
+esac
+
+echo "==> Rollback: $CURRENT -> $PREVIOUS ($PREV_IMAGE)"
 
 # Se a cor anterior já foi desligada (finalizar.sh), religa antes de trocar
 if [ "$(k get deployment "biblioteca-$PREVIOUS" -o jsonpath='{.spec.replicas}')" = "0" ]; then
