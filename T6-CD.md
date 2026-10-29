@@ -170,16 +170,16 @@ O gráfico **Requisições por versão** usa o rótulo `version`, que vem de `AP
 
 | # | Arquivo | Comando / tela | Deve mostrar |
 |---|---|---|---|
-| 1 | `t6-1-estado-inicial.png` | `kubectl get deploy,svc` | Depois do deploy da v1 e antes do da v2: uma cor com 1 réplica, a outra com 0, e o Service `biblioteca` apontando para a cor ativa |
-| 2 | `t6-2-deploy-v1.png` | `./scripts/deploy-bluegreen.sh v1` | Smoke tests `ok:` e a troca de tráfego |
-| 3 | `t6-3-deploy-v2.png` | `./scripts/deploy-bluegreen.sh v2` | "Smoke tests OK" e a troca para a outra cor |
-| 4 | `t6-4-grafana-troca.png` | Grafana → painel **Requisições por versão** | O tráfego passando de v1 para v2 |
-| 5 | `t6-5-rollback.png` | `./scripts/rollback.sh` + painel | Saída do rollback e o gráfico voltando para v1 |
-| 6 | `t6-6-service-yaml.png` | `kubectl get svc biblioteca -o yaml` | `selector.version` e a anotação `bluegreen/previous-color` |
+| 1 | `t6-1-estado-inicial.jpeg` | `kubectl get deploy,svc` | Depois do deploy da v1 e antes do da v2: uma cor com 1 réplica, a outra com 0, e o Service `biblioteca` apontando para a cor ativa |
+| 2 | `t6-2-deploy-v1.jpeg` | `./scripts/deploy-bluegreen.sh v1` | Smoke tests `ok:` e a troca de tráfego |
+| 3 | `t6-3-deploy-v2.jpeg` | `./scripts/deploy-bluegreen.sh v2` | "Smoke tests OK" e a troca para a outra cor |
+| 4 | `t6-4-grafana-troca.jpeg` | Grafana → painel **Requisições por versão** | O tráfego passando de v1 para v2 |
+| 5 | `t6-5-rollback.jpeg` | `./scripts/rollback.sh` + painel | Saída do rollback e o gráfico voltando para v1 |
+| 6 | `t6-6-service-yaml.jpeg` | `kubectl get svc biblioteca -o yaml` | `selector.version` e a anotação `bluegreen/previous-color` |
 
-![Estado inicial](docs/evidencias/t6-1-estado-inicial.png)
-![Deploy v1](docs/evidencias/t6-2-deploy-v1.png)
-![Deploy v2](docs/evidencias/t6-3-deploy-v2.png)
-![Painel: troca de versão](docs/evidencias/t6-4-grafana-troca.png)
-![Rollback](docs/evidencias/t6-5-rollback.png)
-![Service: seletor e anotação](docs/evidencias/t6-6-service-yaml.png)
+![Estado inicial](docs/evidencias/t6-1-estado-inicial.jpeg)
+![Deploy v1](docs/evidencias/t6-2-deploy-v1.jpeg)
+![Deploy v2](docs/evidencias/t6-3-deploy-v2.jpeg)
+![Painel: troca de versão](docs/evidencias/t6-4-grafana-troca.jpeg)
+![Rollback](docs/evidencias/t6-5-rollback.jpeg)
+![Service: seletor e anotação](docs/evidencias/t6-6-service-yaml.jpeg)

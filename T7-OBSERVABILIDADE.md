@@ -130,26 +130,26 @@ Prints em `docs/evidencias/`, com o compose normal (`monitoring/docker-compose.y
 
 | # | Arquivo | Onde | Deve mostrar |
 |---|---|---|---|
-| 1 | `t7-1-target-up.png` | Prometheus → **Status → Targets** | `biblioteca` em **UP** |
-| 2 | `t7-2-painel-normal.png` | Grafana → Dashboards → T7 | Os 9 painéis com tráfego normal (`./scripts/gerar-trafego.sh normal`) |
-| 3 | `t7-3-porta-8081-fechada.png` | Terminal: `curl http://localhost:8081/actuator/prometheus` | **Conexão recusada**: a porta de métricas não está publicada fora da rede interna |
-| 4 | `t7-4-alerta-firing.png` | Prometheus → **Alerts** | `BibliotecaIndisponivel` em **FIRING** (~2 min depois de `docker compose stop biblioteca`) |
-| 5 | `t7-5-painel-fora.png` | Grafana | Painel **Status = FORA** |
-| 6 | `t7-6-recuperacao.png` | Prometheus → **Alerts** | Alerta inativo depois de `docker compose start biblioteca` |
+| 1 | `t7-1-target-up.jpeg` | Prometheus → **Status → Targets** | `biblioteca` em **UP** |
+| 2 | `t7-2-painel-normal.jpeg` | Grafana → Dashboards → T7 | Os 9 painéis com tráfego normal (`./scripts/gerar-trafego.sh normal`) |
+| 3 | `t7-3-porta-8081-fechada.jpeg` | Terminal: `curl http://localhost:8081/actuator/prometheus` | **Conexão recusada**: a porta de métricas não está publicada fora da rede interna |
+| 4 | `t7-4-alerta-firing.jpeg` | Prometheus → **Alerts** | `BibliotecaIndisponivel` em **FIRING** (~2 min depois de `docker compose stop biblioteca`) |
+| 5 | `t7-5-painel-fora.jpeg` | Grafana | Painel **Status = FORA** |
+| 6 | `t7-6-recuperacao.jpeg` | Prometheus → **Alerts** | Alerta inativo depois de `docker compose start biblioteca` |
 
-![Target UP](docs/evidencias/t7-1-target-up.png)
-![Painel com tráfego normal](docs/evidencias/t7-2-painel-normal.png)
-![Porta 8081 fechada](docs/evidencias/t7-3-porta-8081-fechada.png)
-![Alerta em FIRING](docs/evidencias/t7-4-alerta-firing.png)
-![Painel com Status FORA](docs/evidencias/t7-5-painel-fora.png)
-![Recuperação](docs/evidencias/t7-6-recuperacao.png)
+![Target UP](docs/evidencias/t7-1-target-up.jpeg)
+![Painel com tráfego normal](docs/evidencias/t7-2-painel-normal.jpeg)
+![Porta 8081 fechada](docs/evidencias/t7-3-porta-8081-fechada.jpeg)
+![Alerta em FIRING](docs/evidencias/t7-4-alerta-firing.jpeg)
+![Painel com Status FORA](docs/evidencias/t7-5-painel-fora.jpeg)
+![Recuperação](docs/evidencias/t7-6-recuperacao.jpeg)
 
 ### Complemento opcional: taxa de erro
 ```bash
 ./scripts/gerar-trafego.sh erro    # aguardar ~5 min
 ```
-- `t7-7-erro-5xx.png`: gráfico de erro 5xx acima da linha de 7,2% e `BibliotecaErrosQueimaRapida` em **PENDING/FIRING**
-- `t7-8-erro-endpoint.png`: painel "por endpoint" com `/api/livros/{id}` em status 500
+- `t7-7-erro-5xx.jpeg`: gráfico de erro 5xx acima da linha de 7,2% e `BibliotecaErrosQueimaRapida` em **PENDING/FIRING**
+- `t7-8-erro-endpoint.jpeg`: painel "por endpoint" com `/api/livros/{id}` em status 500
 
 Se o painel não registrar status 500 nesse teste, a evidência de indisponibilidade (itens 4 a 6) não depende do comportamento da aplicação.
 
